@@ -20,6 +20,10 @@
   */;
 var AppRate, Locales, localeObj, exec, Storage;
 
+const LATER = 0;
+const NO = 1;
+const YES = 2;
+
 Locales = require('./locales');
 
 exec = require('cordova/exec');
@@ -250,10 +254,11 @@ AppRate = (function() {
         } else {
           iOSStoreUrl = PREF_STORE_URL_PREFIX_IOS9 + this.preferences.storeAppURL.ios + PREF_STORE_URL_POSTFIX_IOS9;
         }
-	AppRate.preferences.openUrl(iOSStoreUrl);
+	      AppRate.preferences.openUrl(iOSStoreUrl);
       }
     } else if (/(Android)/i.test(navigator.userAgent.toLowerCase())) {
-      AppRate.preferences.openUrl(this.preferences.storeAppURL.android);
+      //AppRate.preferences.openUrl(this.preferences.storeAppURL.android);
+      exec(null, null, 'AppRate', 'launchAndroidReview', [this.preferences.storeAppURL.android, showNativePrompt]);
     } else if (/(Windows|Edge)/i.test(navigator.userAgent.toLowerCase())) {
 	  Windows.Services.Store.StoreRequestHelper.sendRequestAsync(Windows.Services.Store.StoreContext.getDefault(), 16, "");
     } else if (/(BlackBerry)/i.test(navigator.userAgent.toLowerCase())) {

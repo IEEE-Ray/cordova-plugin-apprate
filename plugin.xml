@@ -56,6 +56,8 @@ under the License.
                 <param name="android-package" value="org.pushandplay.cordova.apprate.AppRate"/>
             </feature>
         </config-file>
+
+        <framework src="com.google.android.play:core:1.8.0" />
     </platform>
 
     <platform name="ios">

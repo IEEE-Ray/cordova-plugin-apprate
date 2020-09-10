@@ -6,12 +6,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 
+import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.tasks.Task;
 
 public class AppRate extends CordovaPlugin {
 	private ReviewManager manager;
@@ -22,59 +25,68 @@ public class AppRate extends CordovaPlugin {
 	@Override
 	public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException
 	{
-		
+
 		try {
 			PackageManager packageManager = this.cordova.getActivity().getPackageManager();
 			this.manager = ReviewManagerFactory.create(this.cordova.getActivity());
 
 			switch(action){
-				case this.GETAPPVERSION:
-					this.getAppVersion();
+				case GETAPPVERSION:
+					this.getAppVersion(callbackContext, packageManager);
 				break;
 
-				case this.GETAPPTITLE:
-					this.getAppTitle();
+				case GETAPPTITLE:
+					this.getAppTitle(callbackContext, packageManager);
 				break;
 
-				case this.LAUNCHREVIEW:
-					this.requestReviewFlow();
+				case LAUNCHREVIEW:
+					this.requestReviewInfo();
 				break;
 			}
 			return false;
-		} catch (NameNotFoundException e) {
-			callbackContext.success("N/A");
-			return true;
-		}
-	}
+		} catch (Exception e) {
+      e.printStackTrace();
+      return true;
+    }
+  }
 
-	private boolean getAppVersion(){
-		callbackContext.success(packageManager.getPackageInfo(this.cordova.getActivity().getPackageName(), 0).versionName);
-		return true;
-	}
-	private boolean getAppTitle(){
-		ApplicationInfo applicationInfo = packageManager.getApplicationInfo(this.cordova.getActivity()
-		                                                                                .getApplicationContext()
-																						.getApplicationInfo()
-																						.packageName, 0);
+	private boolean getAppVersion(CallbackContext callbackContext, PackageManager packageManager){
+	  try{
+      callbackContext.success(packageManager.getPackageInfo(this.cordova.getActivity().getPackageName(), 0).versionName);
+    } catch (NameNotFoundException e) {
+      e.printStackTrace();
+    }
 
-		final String applicationName = (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : "Unknown");
+    return true;
+	}
+	private boolean getAppTitle(CallbackContext callbackContext, PackageManager packageManager){
+    ApplicationInfo applicationInfo = null;
+    try {
+      applicationInfo = packageManager.getApplicationInfo(this.cordova.getActivity().getApplicationContext()
+                                                                                    .getApplicationInfo()
+                                                                                    .packageName, 0);
+    } catch (NameNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    final String applicationName = (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : "Unknown");
         callbackContext.success(applicationName);
 
         return true;
 	}
-	private void RequestReviewInfo(){
+	private void requestReviewInfo(){
 		Task<ReviewInfo> request = manager.requestReviewFlow();
 		request.addOnCompleteListener(task -> {
 			if (task.isSuccessful()) {
 				// We can get the ReviewInfo object
 				ReviewInfo reviewInfo = task.getResult();
-				this.launchReview(reviewInfo)
+				this.launchReview(reviewInfo);
 			} else {
 				// There was some problem, continue regardless of the result.
 			}
 		});
 	}
-	private void launchReview( Context activity ,ReviewInfo reviewInfo ){
+	private void launchReview(ReviewInfo reviewInfo ){
 		Task<Void> flow = manager.launchReviewFlow(this.cordova.getActivity(), reviewInfo);
 		flow.addOnCompleteListener(task -> {
 			// The flow has finished. The API does not indicate whether the user

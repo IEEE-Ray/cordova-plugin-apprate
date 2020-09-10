@@ -37,7 +37,7 @@ public class AppRate extends CordovaPlugin {
 				break;
 
 				case this.LAUNCHREVIEW:
-					this.
+					this.requestReviewFlow();
 				break;
 			}
 			return false;
